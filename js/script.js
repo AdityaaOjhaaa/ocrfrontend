@@ -1,6 +1,6 @@
-// OCR.space API configuration
-const OCR_API_KEY = 'K83871909388957'; // Your OCR.space API key
-const OCR_API_URL = 'https://api.ocr.space/parse/image';
+// Google Cloud Vision API configuration
+const GOOGLE_API_KEY = 'AIzaSyAAVGD1a6hn8X_SAokeVRzGQSjtW-1s18A'; // Replace with your actual API key
+const GOOGLE_VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
 
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('file-input');
@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (this.files.length > 0) {
             fileNameDisplay.textContent = 'Selected: ' + this.files[0].name;
             fileNameDisplay.style.display = 'block';
+            previewImage(this.files[0]);
         } else {
             fileNameDisplay.style.display = 'none';
         }
@@ -29,61 +30,75 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Enhanced FormData for handwritten and stylized text
-        const formData = new FormData();
-        formData.append('file', fileInput.files[0]);
-        formData.append('apikey', OCR_API_KEY);
-        formData.append('language', 'auto'); // Auto-detect language for better recognition
-        formData.append('OCREngine', '2'); // Engine 2 is better for handwriting and stylized text
-        formData.append('scale', 'true'); // Improve recognition for low-resolution images
-        formData.append('isTable', 'false'); // Disable table detection for better text flow
-        formData.append('detectOrientation', 'true'); // Auto-correct image orientation
-        formData.append('isOverlayRequired', 'false');
+        const file = fileInput.files[0];
         
-        // Additional parameters for better handwriting recognition
-        formData.append('filetype', 'auto'); // Auto-detect file type
-        formData.append('isCreateSearchablePdf', 'false');
-        formData.append('isSearchablePdfHideTextLayer', 'false');
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff'];
+        if (!validTypes.includes(file.type)) {
+            alert('Please select a valid image file (JPEG, PNG, GIF, BMP, or TIFF)');
+            return;
+        }
 
         loader.style.display = 'block';
         resultContainer.style.display = 'none';
 
         try {
-            const response = await fetch(OCR_API_URL, {
+            // Convert image to base64
+            const base64Image = await convertToBase64(file);
+            
+            // Prepare request for Google Vision API
+            const requestBody = {
+                requests: [
+                    {
+                        image: {
+                            content: base64Image
+                        },
+                        features: [
+                            {
+                                type: 'TEXT_DETECTION',
+                                maxResults: 1
+                            }
+                        ],
+                        imageContext: {
+                            languageHints: ['en'] // You can add more languages as needed
+                        }
+                    }
+                ]
+            };
+
+            const response = await fetch(`${GOOGLE_VISION_API_URL}?key=${GOOGLE_API_KEY}`, {
                 method: 'POST',
-                body: formData
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(requestBody)
             });
 
             const data = await response.json();
             
-            if (data.IsErroredOnProcessing === false && data.ParsedResults && data.ParsedResults.length > 0) {
-                let parsedText = data.ParsedResults[0].ParsedText;
+            if (data.responses && data.responses[0] && data.responses[0].textAnnotations) {
+                let extractedTextContent = data.responses[0].textAnnotations[0].description;
                 
-                // Post-processing for better handwritten text output
-                parsedText = cleanHandwrittenText(parsedText);
+                // Clean and format the extracted text
+                extractedTextContent = cleanExtractedText(extractedTextContent);
                 
-                extractedText.textContent = parsedText;
+                extractedText.textContent = extractedTextContent;
                 resultContainer.style.display = 'block';
                 
-                // Display confidence level if available
-                if (data.ParsedResults[0].TextOverlay && data.ParsedResults[0].TextOverlay.HasOverlay) {
-                    console.log('OCR Confidence available - check console for details');
-                }
+                console.log('Text extraction successful');
+            } else if (data.responses && data.responses[0] && data.responses[0].error) {
+                // Handle API errors
+                const errorMessage = data.responses[0].error.message || 'Unknown error occurred';
+                extractedText.textContent = `Error: ${errorMessage}\n\nTips for better results:\n• Ensure good lighting\n• Use high contrast images\n• Keep text horizontal\n• Avoid shadows and glare`;
+                resultContainer.style.display = 'block';
             } else {
-                // Enhanced error handling
-                let errorMessage = 'Failed to process image';
-                if (data.ErrorMessage) {
-                    errorMessage = data.ErrorMessage;
-                } else if (data.ErrorDetails) {
-                    errorMessage = data.ErrorDetails;
-                }
-                
-                extractedText.textContent = 'Error: ' + errorMessage + '\n\nTips for better results:\n• Ensure good lighting\n• Use high contrast\n• Keep text horizontal\n• Avoid shadows and glare';
+                // No text detected
+                extractedText.textContent = 'No text detected in the image.\n\nTips for better results:\n• Ensure the image contains clear, readable text\n• Check image quality and resolution\n• Make sure text is not too small or blurry';
                 resultContainer.style.display = 'block';
             }
         } catch (error) {
-            console.error('OCR Error:', error);
-            extractedText.textContent = 'Error: Failed to connect to OCR service. Please check your internet connection and try again.\n\nFor handwritten text, ensure:\n• Clear, legible writing\n• Good image quality\n• Proper lighting';
+            console.error('Vision API Error:', error);
+            extractedText.textContent = `Error: Failed to process image. ${error.message}\n\nPlease check:\n• Your internet connection\n• API key validity\n• Image file format`;
             resultContainer.style.display = 'block';
         } finally {
             loader.style.display = 'none';
@@ -112,27 +127,40 @@ document.addEventListener('DOMContentLoaded', function() {
         fileInput.value = '';
         fileNameDisplay.style.display = 'none';
         resultContainer.style.display = 'none';
+        
+        // Remove image preview if exists
+        const preview = document.getElementById('image-preview');
+        if (preview) {
+            preview.style.display = 'none';
+        }
     });
 });
 
-// Function to clean and improve handwritten text recognition results
-function cleanHandwrittenText(text) {
+// Convert file to base64 format required by Google Vision API
+function convertToBase64(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            // Remove the data URL prefix to get just the base64 string
+            const base64String = reader.result.split(',')[1];
+            resolve(base64String);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+    });
+}
+
+// Function to clean and improve extracted text
+function cleanExtractedText(text) {
     if (!text) return '';
     
-    // Remove excessive whitespace and normalize line breaks
+    // Normalize line breaks and remove excessive whitespace
     text = text.replace(/\r\n/g, '\n');
     text = text.replace(/\r/g, '\n');
     text = text.replace(/\n{3,}/g, '\n\n');
     text = text.replace(/[ \t]{2,}/g, ' ');
     
-    // Fix common OCR errors in handwritten text
-    text = text.replace(/\b0\b/g, 'O'); // Zero to O in words
-    text = text.replace(/\b1\b(?=[a-zA-Z])/g, 'I'); // 1 to I before letters
-    text = text.replace(/(?<=[a-zA-Z])\b1\b/g, 'l'); // 1 to l after letters
-    text = text.replace(/\b5\b(?=[a-zA-Z])/g, 'S'); // 5 to S in words
-    
-    // Remove artifacts and clean up
-    text = text.replace(/[^\w\s\.,!?;:'"()-]/g, '');
+    // Trim whitespace from beginning and end
     text = text.trim();
     
     return text;
@@ -203,7 +231,7 @@ function handleDrop(evt) {
     const dt = evt.dataTransfer;
     const files = dt.files;
 
-    // Validate file type
+    // Validate file type and size
     if (files.length > 0) {
         const file = files[0];
         const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff'];
@@ -213,9 +241,9 @@ function handleDrop(evt) {
             return;
         }
         
-        // Check file size (max 1MB for free OCR.space)
-        if (file.size > 1024 * 1024) {
-            alert('File size should be less than 1MB for optimal results');
+        // Google Vision API has a 20MB limit for base64 encoded images
+        if (file.size > 20 * 1024 * 1024) {
+            alert('File size should be less than 20MB');
             return;
         }
     }
@@ -226,6 +254,7 @@ function handleDrop(evt) {
         const fileName = files[0].name;
         document.querySelector('#file-name').textContent = 'Selected: ' + fileName;
         document.querySelector('#file-name').style.display = 'block';
+        previewImage(files[0]);
     }
 }
 
@@ -250,15 +279,3 @@ function previewImage(file) {
     };
     reader.readAsDataURL(file);
 }
-
-// Enhanced file input change handler with preview
-document.addEventListener('DOMContentLoaded', function() {
-    const fileInput = document.getElementById('file-input');
-    if (fileInput) {
-        fileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                previewImage(this.files[0]);
-            }
-        });
-    }
-});
