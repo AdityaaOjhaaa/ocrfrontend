@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TextExtract | OCR Solution</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>TextExtract <i class="fas fa-file-alt" style="color: #6c63ff;"></i></h1>
+        <p class="subtitle">Extract text from images with our powerful OCR technology</p>
+
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
+                <div class="feature-title">Fast Processing</div>
+                <div class="feature-desc">Extract text in seconds</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon"><i class="fas fa-check-circle"></i></div>
+                <div class="feature-title">High Accuracy</div>
+                <div class="feature-desc">Precise text recognition</div>
+            </div>
+            <div class="feature">
+                <div class="feature-icon"><i class="fas fa-globe"></i></div>
+                <div class="feature-title">Multiple Languages</div>
+                <div class="feature-desc">Support for various languages</div>
+            </div>
+        </div>
+
+        <form id="upload-form">
+            <div class="upload-area" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p class="upload-text">Drag & Drop your image here</p>
+                <p class="upload-info">or click to browse</p>
+                <input type="file" name="file" id="file-input" class="file-input" accept="image/*">
+                <p id="file-name" class="filename"></p>
+            </div>
+
+            <button type="submit" class="btn">
+                <i class="fas fa-magic"></i> Extract Text
+            </button>
+
+            <div id="loader" class="loader"></div>
+        </form>
+
+        <div id="result-container" class="result-container" style="display: none;">
+            <h3><i class="fas fa-file-alt"></i> Extracted Content</h3>
+            <div class="result-box" id="extracted-text"></div>
+            <button id="copy-btn" class="btn" style="margin-top: 15px;">
+                <i class="fas fa-copy"></i> Copy Text
+            </button>
+            <button id="try-again-btn" class="btn btn-outline" style="margin-top: 15px; margin-left: 10px;">
+                <i class="fas fa-arrow-left"></i> Try Another Image
+            </button>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
