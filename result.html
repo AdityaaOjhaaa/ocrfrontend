@@ -1,190 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TextExtract | Results</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
-    <style>
-        .back-btn {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: #6c63ff;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            cursor: pointer;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-        
-        .back-btn:hover {
-            background: #5a52d5;
-            transform: translateY(-2px);
-        }
-        
-        .result-page-container {
-            max-width: 800px;
-            margin: 60px auto 0;
-            padding: 20px;
-        }
-        
-        .result-header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        
-        .result-header h1 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-        
-        .image-preview {
-            max-width: 300px;
-            max-height: 200px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            margin: 20px auto;
-            display: block;
-        }
-        
-        .result-stats {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-        
-        .stat-item {
-            text-align: center;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            min-width: 120px;
-        }
-        
-        .stat-value {
-            font-size: 24px;
-            font-weight: 600;
-            color: #6c63ff;
-        }
-        
-        .stat-label {
-            font-size: 14px;
-            color: #666;
-            margin-top: 5px;
-        }
-        
-        .action-buttons {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .error-message {
-            background: #ffe6e6;
-            border: 1px solid #ffcccc;
-            color: #cc0000;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        
-        .success-message {
-            background: #e6ffe6;
-            border: 1px solid #ccffcc;
-            color: #006600;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>OCR Result</title>
+  <style>
+    #loader {
+      display: none;
+      font-weight: bold;
+      color: blue;
+    }
+    #image-preview {
+      max-width: 400px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+    }
+    #extracted-text {
+      margin-top: 20px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
-    <a href="index.html" class="back-btn">
-        <i class="fas fa-arrow-left"></i> Back to Upload
-    </a>
+  <h2>OCR Results</h2>
 
-    <div class="result-page-container">
-        <div class="result-header">
-            <h1><i class="fas fa-file-alt"></i> Text Extraction Results</h1>
-            <p class="subtitle">Your extracted text is ready!</p>
-        </div>
+  <div id="loader">Loading...</div>
 
-        <!-- Image Preview Section -->
-        <div id="image-preview-section" style="text-align: center; margin: 20px 0;">
-            <h3>Processed Image</h3>
-            <img id="processed-image" class="image-preview" style="display: none;" alt="Processed Image">
-            <p id="image-info" style="color: #666; font-size: 14px;"></p>
-        </div>
+  <div>
+    <img id="image-preview" alt="Uploaded image preview" />
+  </div>
 
-        <!-- Statistics Section -->
-        <div class="result-stats">
-            <div class="stat-item">
-                <div class="stat-value" id="char-count">0</div>
-                <div class="stat-label">Characters</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="word-count">0</div>
-                <div class="stat-label">Words</div>
-            </div>
-            <div class="stat-item">
-                <div class="stat-value" id="line-count">0</div>
-                <div class="stat-label">Lines</div>
-            </div>
-        </div>
+  <div id="extracted-text">Extracted text will appear here...</div>
 
-        <!-- Status Messages -->
-        <div id="status-message"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const loader = document.getElementById('loader');
+      const imagePreview = document.getElementById('image-preview');
+      const textDisplay = document.getElementById('extracted-text');
 
-        <!-- Extracted Text Section -->
-        <div class="result-container">
-            <h3><i class="fas fa-file-alt"></i> Extracted Content</h3>
-            <div class="result-box" id="extracted-text">
-                Loading your extracted text...
-            </div>
-            
-            <div class="action-buttons">
-                <button id="copy-btn" class="btn">
-                    <i class="fas fa-copy"></i> Copy Text
-                </button>
-                <button id="download-btn" class="btn btn-outline">
-                    <i class="fas fa-download"></i> Download as TXT
-                </button>
-                <button id="edit-btn" class="btn btn-outline">
-                    <i class="fas fa-edit"></i> Edit Text
-                </button>
-                <a href="index.html" class="btn btn-outline">
-                    <i class="fas fa-plus"></i> Extract Another Image
-                </a>
-            </div>
-        </div>
+      loader.style.display = 'block';
 
-        <!-- Edit Modal -->
-        <div id="edit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000;">
-            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;">
-                <h3>Edit Extracted Text</h3>
-                <textarea id="edit-textarea" style="width: 100%; height: 300px; padding: 10px; border: 1px solid #ddd; border-radius: 5px; font-family: monospace; resize: vertical;"></textarea>
-                <div style="margin-top: 15px; text-align: right;">
-                    <button id="save-edit-btn" class="btn" style="margin-right: 10px;">Save Changes</button>
-                    <button id="cancel-edit-btn" class="btn btn-outline">Cancel</button>
-                </div>
-            </div>
-        </div>
-    </div>
+      const imageDataUrl = sessionStorage.getItem('processedImage');
+      const extractedText = sessionStorage.getItem('extractedText');
+      const extractionStatus = sessionStorage.getItem('extractionStatus');
 
-    <script src="js/result.js"></script>
+      if (imageDataUrl) {
+        imagePreview.src = imageDataUrl;
+        imagePreview.style.display = 'block';
+      }
+
+      if (extractedText) {
+        textDisplay.textContent = extractedText;
+      } else {
+        textDisplay.textContent = 'No text data found in sessionStorage.';
+      }
+
+      loader.style.display = 'none';
+    });
+  </script>
 </body>
 </html>
