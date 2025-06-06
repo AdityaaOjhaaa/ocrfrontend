@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results | TextExtract</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>TextExtract <i class="fas fa-file-alt" style="color: #6c63ff;"></i></h1>
+            <p class="subtitle">Your extracted text is ready!</p>
+        </div>
+
+        <div class="result-section">
+            <div class="image-preview">
+                <h3><i class="fas fa-image"></i> Uploaded Image</h3>
+                <div class="image-container">
+                    <img id="uploaded-image" src="" alt="Uploaded image" style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                </div>
+            </div>
+
+            <div class="text-results">
+                <div class="results-header">
+                    <h3><i class="fas fa-file-text"></i> Extracted Text</h3>
+                    <div class="confidence-badge" id="confidence-badge">
+                        <i class="fas fa-chart-line"></i> Confidence: <span id="confidence-score">--</span>%
+                    </div>
+                </div>
+
+                <div class="result-box" id="extracted-text">
+                    Loading extracted text...
+                </div>
+
+                <div class="text-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-font"></i>
+                        <span>Characters: <strong id="char-count">0</strong></span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-align-left"></i>
+                        <span>Words: <strong id="word-count">0</strong></span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-list-ol"></i>
+                        <span>Lines: <strong id="line-count">0</strong></span>
+                    </div>
+                </div>
+
+                <div class="action-buttons">
+                    <button id="copy-btn" class="btn">
+                        <i class="fas fa-copy"></i> Copy Text
+                    </button>
+                    <button id="download-btn" class="btn btn-outline">
+                        <i class="fas fa-download"></i> Download as TXT
+                    </button>
+                    <button id="edit-btn" class="btn btn-outline">
+                        <i class="fas fa-edit"></i> Edit Text
+                    </button>
+                </div>
+
+                <!-- Editable text area (hidden by default) -->
+                <div id="edit-section" class="edit-section" style="display: none;">
+                    <h4><i class="fas fa-edit"></i> Edit Your Text</h4>
+                    <textarea id="editable-text" class="edit-textarea"></textarea>
+                    <div class="edit-buttons">
+                        <button id="save-edit-btn" class="btn">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                        <button id="cancel-edit-btn" class="btn btn-outline">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="additional-options">
+            <h3><i class="fas fa-cogs"></i> Additional Options</h3>
+            <div class="options-grid">
+                <button id="translate-btn" class="option-btn">
+                    <i class="fas fa-language"></i>
+                    <span>Translate Text</span>
+                </button>
+                <button id="summarize-btn" class="option-btn">
+                    <i class="fas fa-compress-alt"></i>
+                    <span>Summarize</span>
+                </button>
+                <button id="format-btn" class="option-btn">
+                    <i class="fas fa-align-justify"></i>
+                    <span>Format Text</span>
+                </button>
+                <button id="search-btn" class="option-btn">
+                    <i class="fas fa-search"></i>
+                    <span>Search in Text</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Search functionality -->
+        <div id="search-section" class="search-section" style="display: none;">
+            <div class="search-box">
+                <input type="text" id="search-input" placeholder="Search in extracted text...">
+                <button id="search-execute-btn" class="btn">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+            <div id="search-results" class="search-results"></div>
+        </div>
+
+        <div class="navigation-buttons">
+            <button id="back-btn" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Process Another Image
+            </button>
+            <button id="home-btn" class="btn">
+                <i class="fas fa-home"></i> Back to Home
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Get extracted text from URL parameters or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        const extractedText = urlParams.get('text') || localStorage.getItem('extractedText') || 'No text found';
+        const imageData = localStorage.getItem('uploadedImage');
+        const confidence = localStorage.getItem('confidence') || 'N/A';
+
+        // DOM elements
+        const extractedTextElement = document.getElementById('extracted-text');
+        const uploadedImageElement = document.getElementById('uploaded-image');
+        const confidenceElement = document.getElementById('confidence-score');
+        const charCountElement = document.getElementById('char-count');
+        const wordCountElement = document.getElementById('word-count');
+        const lineCountElement = document.getElementById('line-count');
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Display extracted text
+            extractedTextElement.textContent = extractedText;
+            
+            // Display uploaded image if available
+            if (imageData) {
+                uploadedImageElement.src = imageData;
+            } else {
+                document.querySelector('.image-preview').style.display = 'none';
+            }
+
+            // Display confidence score
+            confidenceElement.textContent = confidence;
+
+            // Calculate and display text statistics
+            updateTextStats(extractedText);
+
+            // Set up event listeners
+            setupEventListeners();
+        });
+
+        function updateTextStats(text) {
+            const charCount = text.length;
+            const wordCount = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const lineCount = text.split('\n').length;
+
+            charCountElement.textContent = charCount;
+            wordCountElement.textContent = wordCount;
+            lineCountElement.textContent = lineCount;
+        }
+
+        function setupEventListeners() {
+            // Copy button
+            document.getElementById('copy-btn').addEventListener('click', function() {
+                const textToCopy = extractedTextElement.textContent;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    this.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="fas fa-copy"></i> Copy Text';
+                    }, 2000);
+                });
+            });
+
+            // Download button
+            document.getElementById('download-btn').addEventListener('click', function() {
+                const text = extractedTextElement.textContent;
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'extracted-text.txt';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            });
+
+            // Edit button
+            document.getElementById('edit-btn').addEventListener('click', function() {
+                const editSection = document.getElementById('edit-section');
+                const editableText = document.getElementById('editable-text');
+                
+                editableText.value = extractedTextElement.textContent;
+                editSection.style.display = 'block';
+                editableText.focus();
+            });
+
+            // Save edit button
+            document.getElementById('save-edit-btn').addEventListener('click', function() {
+                const editedText = document.getElementById('editable-text').value;
+                extractedTextElement.textContent = editedText;
+                updateTextStats(editedText);
+                document.getElementById('edit-section').style.display = 'none';
+                
+                // Update localStorage
+                localStorage.setItem('extractedText', editedText);
+            });
+
+            // Cancel edit button
+            document.getElementById('cancel-edit-btn').addEventListener('click', function() {
+                document.getElementById('edit-section').style.display = 'none';
+            });
+
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', function() {
+                const searchSection = document.getElementById('search-section');
+                searchSection.style.display = searchSection.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Search execute button
+            document.getElementById('search-execute-btn').addEventListener('click', performSearch);
+            
+            // Search on Enter key
+            document.getElementById('search-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    performSearch();
+                }
+            });
+
+            // Navigation buttons
+            document.getElementById('back-btn').addEventListener('click', function() {
+                window.location.href = 'index.html';
+            });
+
+            document.getElementById('home-btn').addEventListener('click', function() {
+                // Clear stored data
+                localStorage.removeItem('extractedText');
+                localStorage.removeItem('uploadedImage');
+                localStorage.removeItem('confidence');
+                window.location.href = 'index.html';
+            });
+
+            // Additional option buttons (placeholder functionality)
+            document.getElementById('translate-btn').addEventListener('click', function() {
+                alert('Translation feature coming soon!');
+            });
+
+            document.getElementById('summarize-btn').addEventListener('click', function() {
+                alert('Summarization feature coming soon!');
+            });
+
+            document.getElementById('format-btn').addEventListener('click', function() {
+                // Simple text formatting
+                const text = extractedTextElement.textContent;
+                const formattedText = text
+                    .split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0)
+                    .join('\n\n');
+                
+                extractedTextElement.textContent = formattedText;
+                updateTextStats(formattedText);
+            });
+        }
+
+        function performSearch() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const text = extractedTextElement.textContent.toLowerCase();
+            const resultsElement = document.getElementById('search-results');
+
+            if (!searchTerm.trim()) {
+                resultsElement.innerHTML = '<p>Please enter a search term.</p>';
+                return;
+            }
+
+            const lines = extractedTextElement.textContent.split('\n');
+            const matches = [];
+
+            lines.forEach((line, index) => {
+                if (line.toLowerCase().includes(searchTerm)) {
+                    matches.push({
+                        lineNumber: index + 1,
+                        content: line,
+                        highlighted: line.replace(new RegExp(searchTerm, 'gi'), `<mark>$&</mark>`)
+                    });
+                }
+            });
+
+            if (matches.length > 0) {
+                resultsElement.innerHTML = `
+                    <h4>Found ${matches.length} match(es):</h4>
+                    ${matches.map(match => `
+                        <div class="search-match">
+                            <small>Line ${match.lineNumber}:</small>
+                            <p>${match.highlighted}</p>
+                        </div>
+                    `).join('')}
+                `;
+            } else {
+                resultsElement.innerHTML = '<p>No matches found.</p>';
+            }
+        }
+    </script>
+
+    <style>
+        .result-section {
+            margin: 30px 0;
+        }
+
+        .image-preview {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .image-container {
+            margin-top: 15px;
+        }
+
+        .text-results {
+            margin-top: 30px;
+        }
+
+        .results-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .confidence-badge {
+            background: var(--primary-color);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .text-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 20px 0;
+            background: var(--light-color);
+            padding: 15px;
+            border-radius: 10px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            margin: 5px;
+        }
+
+        .stat-item i {
+            color: var(--primary-color);
+            margin-right: 5px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .edit-section {
+            margin-top: 20px;
+            padding: 20px;
+            background: var(--light-color);
+            border-radius: 10px;
+        }
+
+        .edit-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.6;
+            resize: vertical;
+            margin: 15px 0;
+        }
+
+        .edit-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .additional-options {
+            margin: 40px 0;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .option-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: var(--light-color);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--dark-color);
+        }
+
+        .option-btn:hover {
+            border-color: var(--primary-color);
+            background: white;
+            transform: translateY(-2px);
+        }
+
+        .option-btn i {
+            font-size: 24px;
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .search-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: var(--light-color);
+            border-radius: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .search-results {
+            margin-top: 15px;
+        }
+
+        .search-match {
+            background: white;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .search-match small {
+            color: var(--gray-color);
+            font-weight: 500;
+        }
+
+        .search-match mark {
+            background: #ffeb3b;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .results-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .text-stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+
+            .search-box {
+                flex-direction: column;
+            }
+
+            .navigation-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
+</body>
+</html>
