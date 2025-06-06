@@ -1,5 +1,5 @@
 // Google Cloud Vision API configuration
-const GOOGLE_API_KEY = 'YOUR_ACTUAL_API_KEY_HERE'; // Make sure this is your real key
+const GOOGLE_API_KEY = 'AIzaSyAAVGD1a6hn8X_SAokeVRzGQSjtW-1s18A'; // Make sure this is your real key
 const GOOGLE_VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
 
 document.addEventListener('DOMContentLoaded', function() {
