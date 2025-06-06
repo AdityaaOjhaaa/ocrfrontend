@@ -1,5 +1,6 @@
-// Replace this with your actual Render backend URL after deployment
-const API_BASE_URL = 'https://ocrbackend-8mdz.onrender.com';
+// OCR.space API configuration
+const OCR_API_KEY = 'K83871909388957'; // Get free key from ocr.space
+const OCR_API_URL = 'https://api.ocr.space/parse/image';
 
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('file-input');
@@ -30,27 +31,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const formData = new FormData();
         formData.append('file', fileInput.files[0]);
+        formData.append('apikey', OCR_API_KEY);
+        formData.append('language', 'eng');
+        formData.append('isOverlayRequired', 'false');
 
         loader.style.display = 'block';
         resultContainer.style.display = 'none';
 
         try {
-            const response = await fetch(`${API_BASE_URL}/upload`, {
+            const response = await fetch(OCR_API_URL, {
                 method: 'POST',
                 body: formData
             });
 
             const data = await response.json();
             
-            if (response.ok) {
-                extractedText.textContent = data.text;
+            if (data.IsErroredOnProcessing === false && data.ParsedResults && data.ParsedResults.length > 0) {
+                extractedText.textContent = data.ParsedResults[0].ParsedText;
                 resultContainer.style.display = 'block';
             } else {
-                extractedText.textContent = 'Error: ' + (data.error || 'Failed to process image');
+                extractedText.textContent = 'Error: ' + (data.ErrorMessage || 'Failed to process image');
                 resultContainer.style.display = 'block';
             }
         } catch (error) {
-            extractedText.textContent = 'Error: Failed to connect to server. Please try again.';
+            extractedText.textContent = 'Error: Failed to connect to OCR service. Please try again.';
             resultContainer.style.display = 'block';
         } finally {
             loader.style.display = 'none';
@@ -64,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 this.innerHTML = '<i class="fas fa-copy"></i> Copy Text';
             }, 2000);
-        });
+        }, 2000);
     });
 
     tryAgainBtn.addEventListener('click', function() {
@@ -74,7 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-// Drag and drop functionality
+// Drag and drop functionality remains the same
 function handleDragOver(evt) {
     evt.preventDefault();
     evt.stopPropagation();
