@@ -1,5 +1,5 @@
 // Replace this with your actual Render backend URL after deployment
-const API_BASE_URL = 'https://your-backend-app.onrender.com';
+const API_BASE_URL = 'https://ocrbackend-8mdz.onrender.com';
 
 document.addEventListener('DOMContentLoaded', function() {
     const fileInput = document.getElementById('file-input');
