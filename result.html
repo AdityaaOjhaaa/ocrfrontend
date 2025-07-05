@@ -7,159 +7,267 @@
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #e6ebf5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
-      padding: 0 20px;
+      padding: 20px;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
-    header {
-      width: 100%;
-      padding: 20px 0;
-      background: #ffffff;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      display: flex;
-      align-items: center;
-    }
-    header button {
-      margin-left: 20px;
-      background: #6f7df3;
+
+    .back-btn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: rgba(255, 255, 255, 0.9);
       border: none;
-      color: white;
-      padding: 8px 16px;
-      border-radius: 6px;
+      color: #667eea;
+      padding: 12px 20px;
+      border-radius: 25px;
       cursor: pointer;
       font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
     }
-    header h1 {
-      font-size: 24px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-    }
-    header h1 span {
-      margin-left: 8px;
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 1);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
     }
 
-    main {
+    .container {
       width: 100%;
-      max-width: 900px;
-      margin: 30px auto;
+      max-width: 1000px;
+      margin: 60px auto 0;
       display: flex;
       flex-direction: column;
       align-items: center;
     }
 
-    .counts {
-      width: 100%;
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+      color: white;
+    }
+    .header h1 {
+      font-size: 42px;
+      margin: 0 0 10px 0;
+      font-weight: 700;
       display: flex;
-      justify-content: space-around;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+    }
+    .header p {
+      font-size: 18px;
+      margin: 0;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .section-title {
+      font-size: 24px;
+      color: white;
+      margin: 30px 0 20px 0;
+      text-align: center;
+      font-weight: 600;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 20px;
+      width: 100%;
+      margin-bottom: 40px;
+    }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.95);
+      padding: 30px 20px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+    }
+    .stat-value {
+      font-size: 36px;
+      font-weight: 700;
+      color: #667eea;
+      margin-bottom: 8px;
+      display: block;
+    }
+    .stat-label {
+      font-size: 16px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .content-section {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
       margin-bottom: 30px;
     }
-    .counts div {
-      background: white;
-      padding: 20px 0;
-      flex: 1;
-      margin: 0 10px;
-      text-align: center;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-    }
-    .counts .value {
-      font-size: 32px;
-      color: #6f7df3;
-      margin-bottom: 5px;
-    }
-    .counts .label {
-      font-size: 14px;
-      color: #444;
-    }
-
-    .extracted {
-      width: 100%;
-      background: white;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      padding: 20px;
-      margin-bottom: 20px;
-      position: relative;
-    }
-    .extracted pre {
-      margin: 0;
-      font-family: 'Courier New', monospace;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 300px;
-      overflow-y: auto;
-    }
-    .extracted .actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-    .extracted .actions button {
-      background: #6f7df3;
-      border: none;
-      color: white;
-      padding: 10px 18px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
+    .content-section h2 {
+      margin: 0 0 20px 0;
+      font-size: 22px;
+      color: #333;
+      font-weight: 600;
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 10px;
     }
-    .extract-another {
-      margin-top: 20px;
-      background: #fff;
-      border-radius: 10px;
-      padding: 12px 30px;
-      border: 2px solid #6f7df3;
-      color: #6f7df3;
+    .extracted-text {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 12px;
+      padding: 20px;
+      font-family: 'Courier New', monospace;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
       cursor: pointer;
-      font-size: 16px;
+      font-size: 14px;
+      font-weight: 600;
       display: flex;
       align-items: center;
       gap: 8px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
     }
-    .extract-another:hover {
-      background: #6f7df3;
-      color: white;
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
     }
-    button:disabled {
+    .btn:disabled {
       opacity: 0.6;
       cursor: not-allowed;
+      transform: none;
+    }
+    .btn.btn-outline {
+      background: transparent;
+      border: 2px solid #667eea;
+      color: #667eea;
+      box-shadow: none;
+    }
+    .btn.btn-outline:hover {
+      background: #667eea;
+      color: white;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .extract-another {
+      background: rgba(255, 255, 255, 0.95);
+      border: 2px solid #667eea;
+      color: #667eea;
+      padding: 15px 30px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      backdrop-filter: blur(10px);
+    }
+    .extract-another:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        margin-top: 80px;
+      }
+      .header h1 {
+        font-size: 28px;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+      .action-buttons {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn {
+        justify-content: center;
+      }
     }
   </style>
 </head>
 <body>
+  <button class="back-btn" id="back-btn">← Back to Upload</button>
 
-  <header>
-    <button id="back-btn">← Back to Upload</button>
-    <h1>📄 <span>Text Extraction Results</span></h1>
-  </header>
-
-  <main>
-    <div class="counts">
-      <div><div class="value" id="char-count">0</div><div class="label">Characters</div></div>
-      <div><div class="value" id="word-count">0</div><div class="label">Words</div></div>
-      <div><div class="value" id="line-count">0</div><div class="label">Lines</div></div>
+  <div class="container">
+    <div class="header">
+      <h1>📄 Text Extraction Results</h1>
+      <p>Your extracted text is ready!</p>
     </div>
 
-    <div class="extracted">
-      <pre id="extracted-text">Loading your extracted text...</pre>
-      <div class="actions">
-        <button id="copy-btn">📋 Copy Text</button>
-        <button id="download-btn">💾 Download as TXT</button>
-        <button id="edit-btn">✏️ Edit Text</button>
+    <div class="section-title">Processed Image</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-value" id="char-count">0</span>
+        <span class="stat-label">Characters</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="word-count">0</span>
+        <span class="stat-label">Words</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value" id="line-count">0</span>
+        <span class="stat-label">Lines</span>
+      </div>
+    </div>
+
+    <div class="content-section">
+      <h2>📋 Extracted Content</h2>
+      <div class="extracted-text" id="extracted-text">Your extracted text will appear here...</div>
+      
+      <div class="action-buttons">
+        <button class="btn" id="copy-btn">📋 Copy Text</button>
+        <button class="btn" id="download-btn">💾 Download as TXT</button>
+        <button class="btn" id="edit-btn">✏️ Edit Text</button>
       </div>
     </div>
 
     <button class="extract-another" id="another-btn">➕ Extract Another Image</button>
-  </main>
+  </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -173,50 +281,140 @@
       const editBtn = document.getElementById('edit-btn');
       const anotherBtn = document.getElementById('another-btn');
 
-      backBtn.addEventListener('click', () => window.location.href = 'index.html');
-
-      const text = sessionStorage.getItem('extractedText') || '';
-      extractedEl.textContent = text;
-
-      const charCount = text.length;
-      const wordCount = text.trim().split(/\s+/).filter(Boolean).length;
-      const lineCount = text.split(/\n/).length;
-
-      charCountEl.textContent = charCount;
-      wordCountEl.textContent = wordCount;
-      lineCountEl.textContent = lineCount;
-
-      copyBtn.addEventListener('click', async () => {
-        await navigator.clipboard.writeText(text);
-        copyBtn.textContent = '✅ Copied!';
-        copyBtn.disabled = true;
-        setTimeout(() => {
-          copyBtn.textContent = '📋 Copy Text';
-          copyBtn.disabled = false;
-        }, 1500);
+      // Back button functionality
+      backBtn.addEventListener('click', () => {
+        window.location.href = 'index.html';
       });
 
+      // Get extracted text from sessionStorage
+      const text = sessionStorage.getItem('extractedText') || '';
+      
+      if (text) {
+        extractedEl.textContent = text;
+      } else {
+        extractedEl.textContent = 'No text was extracted. Please try uploading another image.';
+      }
+
+      // Calculate statistics
+      const charCount = text.length;
+      const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
+      const lineCount = text.split(/\n/).length;
+
+      // Update counters with animation
+      const animateCounter = (element, target) => {
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            element.textContent = target;
+            clearInterval(timer);
+          } else {
+            element.textContent = Math.floor(current);
+          }
+        }, 20);
+      };
+
+      setTimeout(() => {
+        animateCounter(charCountEl, charCount);
+        animateCounter(wordCountEl, wordCount);
+        animateCounter(lineCountEl, lineCount);
+      }, 300);
+
+      // Copy to clipboard
+      copyBtn.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          copyBtn.innerHTML = '✅ Copied!';
+          copyBtn.disabled = true;
+          setTimeout(() => {
+            copyBtn.innerHTML = '📋 Copy Text';
+            copyBtn.disabled = false;
+          }, 2000);
+        } catch (err) {
+          console.error('Failed to copy text: ', err);
+        }
+      });
+
+      // Download as TXT file
       downloadBtn.addEventListener('click', () => {
-        const blob = new Blob([text], { type: 'text/plain' });
+        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'extracted.txt';
+        a.download = `extracted_text_${new Date().toISOString().split('T')[0]}.txt`;
         document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
         document.body.removeChild(a);
+        URL.revokeObjectURL(url);
       });
 
+      // Edit text in new window
       editBtn.addEventListener('click', () => {
-        window.open('', '_blank').document.write(`
-          <textarea style="width:100%;height:100vh;font-size:16px;font-family:monospace;">${text.replace(/</g, '&lt;')}</textarea>
-        `);
+        const newWindow = window.open('', '_blank', 'width=800,height=600');
+        if (newWindow) {
+          newWindow.document.write(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+              <title>Edit Extracted Text</title>
+              <style>
+                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+                textarea { 
+                  width: 100%; 
+                  height: calc(100vh - 100px); 
+                  font-size: 16px; 
+                  font-family: 'Courier New', monospace; 
+                  border: 1px solid #ddd; 
+                  padding: 10px; 
+                  border-radius: 5px; 
+                  resize: none; 
+                  outline: none; 
+                }
+                .header { margin-bottom: 20px; }
+                .btn { 
+                  background: #667eea; 
+                  color: white; 
+                  border: none; 
+                  padding: 10px 20px; 
+                  border-radius: 5px; 
+                  cursor: pointer; 
+                  margin-right: 10px; 
+                }
+                .btn:hover { background: #5a6fd8; }
+              </style>
+            </head>
+            <body>
+              <div class="header">
+                <h2>Edit Extracted Text</h2>
+                <button class="btn" onclick="downloadEditedText()">Download Edited Text</button>
+                <button class="btn" onclick="window.close()">Close</button>
+              </div>
+              <textarea id="editableText">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+              <script>
+                function downloadEditedText() {
+                  const editedText = document.getElementById('editableText').value;
+                  const blob = new Blob([editedText], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = 'edited_text.txt';
+                  a.click();
+                  URL.revokeObjectURL(url);
+                }
+              </script>
+            </body>
+            </html>
+          `);
+        }
       });
 
-      anotherBtn.addEventListener('click', () => window.location.href = 'index.html');
+      // Extract another image
+      anotherBtn.addEventListener('click', () => {
+        sessionStorage.removeItem('extractedText');
+        window.location.href = 'index.html';
+      });
     });
   </script>
-
 </body>
 </html>
