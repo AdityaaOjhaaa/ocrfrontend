@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Text Extraction Results</title>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; }
     body {
@@ -175,17 +176,6 @@
       cursor: not-allowed;
       transform: none;
     }
-    .btn.btn-outline {
-      background: transparent;
-      border: 2px solid #667eea;
-      color: #667eea;
-      box-shadow: none;
-    }
-    .btn.btn-outline:hover {
-      background: #667eea;
-      color: white;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
 
     .extract-another {
       background: rgba(255, 255, 255, 0.95);
@@ -230,6 +220,7 @@
     }
   </style>
 </head>
+
 <body>
   <button class="back-btn" id="back-btn">← Back to Upload</button>
 
@@ -239,7 +230,8 @@
       <p>Your extracted text is ready!</p>
     </div>
 
-    <div class="section-title">Processed Image</div>
+    <div class="section-title">Statistics</div>
+
     <div class="stats-grid">
       <div class="stat-card">
         <span class="stat-value" id="char-count">0</span>
@@ -257,8 +249,11 @@
 
     <div class="content-section">
       <h2>📋 Extracted Content</h2>
-      <div class="extracted-text" id="extracted-text">Your extracted text will appear here...</div>
-      
+
+      <div class="extracted-text" id="extracted-text">
+        Loading extracted text...
+      </div>
+
       <div class="action-buttons">
         <button class="btn" id="copy-btn">📋 Copy Text</button>
         <button class="btn" id="download-btn">💾 Download as TXT</button>
@@ -272,147 +267,78 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const backBtn = document.getElementById('back-btn');
-      const charCountEl = document.getElementById('char-count');
-      const wordCountEl = document.getElementById('word-count');
-      const lineCountEl = document.getElementById('line-count');
+      const charEl = document.getElementById('char-count');
+      const wordEl = document.getElementById('word-count');
+      const lineEl = document.getElementById('line-count');
       const extractedEl = document.getElementById('extracted-text');
       const copyBtn = document.getElementById('copy-btn');
       const downloadBtn = document.getElementById('download-btn');
       const editBtn = document.getElementById('edit-btn');
       const anotherBtn = document.getElementById('another-btn');
 
-      // Back button functionality
-      backBtn.addEventListener('click', () => {
-        window.location.href = 'index.html';
-      });
+      backBtn.onclick = () => window.location.href = "index.html";
 
-      const text = sessionStorage.getItem('extractedText') || '';
+      // Read extracted text
+      const text = sessionStorage.getItem("extractedText") || "";
+      const status = sessionStorage.getItem("extractionStatus") || "none";
 
-if (text) {
-    extractedEl.textContent = text;
-} else {
-    extractedEl.textContent = 'No text was extracted. Please try uploading another image.';
-}
+      // Display extracted text
+      extractedEl.textContent = text ? text : "No extracted text found.";
 
-const charCount = text.length || 0;
-const wordCount = text ? text.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
-const lineCount = text ? text.split(/\n/).length : 0;
+      // Stats
+      const charCount = text ? text.length : 0;
+      const wordCount = text ? text.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
+      const lineCount = text ? text.split(/\n/).length : 0;
 
-
-      // Update counters with animation
-      const animateCounter = (element, target) => {
-        let current = 0;
-        const increment = target / 50;
-        const timer = setInterval(() => {
-          current += increment;
-          if (current >= target) {
-            element.textContent = target;
-            clearInterval(timer);
+      // Animate stats
+      const animate = (element, value) => {
+        let start = 0;
+        const increment = value / 60;
+        const interval = setInterval(() => {
+          start += increment;
+          if (start >= value) {
+            element.textContent = value;
+            clearInterval(interval);
           } else {
-            element.textContent = Math.floor(current);
+            element.textContent = Math.floor(start);
           }
         }, 20);
       };
 
-      setTimeout(() => {
-        animateCounter(charCountEl, charCount);
-        animateCounter(wordCountEl, wordCount);
-        animateCounter(lineCountEl, lineCount);
-      }, 300);
+      animate(charEl, charCount);
+      animate(wordEl, wordCount);
+      animate(lineEl, lineCount);
 
-      // Copy to clipboard
-      copyBtn.addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(text);
-          copyBtn.innerHTML = '✅ Copied!';
-          copyBtn.disabled = true;
-          setTimeout(() => {
-            copyBtn.innerHTML = '📋 Copy Text';
-            copyBtn.disabled = false;
-          }, 2000);
-        } catch (err) {
-          console.error('Failed to copy text: ', err);
-        }
-      });
+      // Copy text
+      copyBtn.onclick = async () => {
+        await navigator.clipboard.writeText(text);
+        copyBtn.innerText = "✅ Copied!";
+        setTimeout(() => copyBtn.innerText = "📋 Copy Text", 1500);
+      };
 
-      // Download as TXT file
-      downloadBtn.addEventListener('click', () => {
-        const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      // Download text
+      downloadBtn.onclick = () => {
+        const blob = new Blob([text], { type: "text/plain" });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
+        const a = document.createElement("a");
         a.href = url;
-        a.download = `extracted_text_${new Date().toISOString().split('T')[0]}.txt`;
-        document.body.appendChild(a);
+        a.download = "extracted_text.txt";
         a.click();
-        document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      });
+      };
 
-      // Edit text in new window
-      editBtn.addEventListener('click', () => {
-        const newWindow = window.open('', '_blank', 'width=800,height=600');
-        if (newWindow) {
-          newWindow.document.write(`
-            <!DOCTYPE html>
-            <html>
-            <head>
-              <title>Edit Extracted Text</title>
-              <style>
-                body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
-                textarea { 
-                  width: 100%; 
-                  height: calc(100vh - 100px); 
-                  font-size: 16px; 
-                  font-family: 'Courier New', monospace; 
-                  border: 1px solid #ddd; 
-                  padding: 10px; 
-                  border-radius: 5px; 
-                  resize: none; 
-                  outline: none; 
-                }
-                .header { margin-bottom: 20px; }
-                .btn { 
-                  background: #667eea; 
-                  color: white; 
-                  border: none; 
-                  padding: 10px 20px; 
-                  border-radius: 5px; 
-                  cursor: pointer; 
-                  margin-right: 10px; 
-                }
-                .btn:hover { background: #5a6fd8; }
-              </style>
-            </head>
-            <body>
-              <div class="header">
-                <h2>Edit Extracted Text</h2>
-                <button class="btn" onclick="downloadEditedText()">Download Edited Text</button>
-                <button class="btn" onclick="window.close()">Close</button>
-              </div>
-              <textarea id="editableText">${text.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
-              <script>
-                function downloadEditedText() {
-                  const editedText = document.getElementById('editableText').value;
-                  const blob = new Blob([editedText], { type: 'text/plain' });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement('a');
-                  a.href = url;
-                  a.download = 'edited_text.txt';
-                  a.click();
-                  URL.revokeObjectURL(url);
-                }
-              </script>
-            </body>
-            </html>
-          `);
-        }
-      });
+      // Edit text
+      editBtn.onclick = () => {
+        const win = window.open("", "_blank");
+        win.document.write(`
+          <textarea style="width:100%;height:90vh;font-size:16px;">${text.replace(/</g,"&lt;")}</textarea>
+        `);
+      };
 
-      // Extract another image
-      anotherBtn.addEventListener('click', () => {
-        sessionStorage.removeItem('extractedText');
-        window.location.href = 'index.html';
-      });
+      anotherBtn.onclick = () => {
+        sessionStorage.clear();
+        window.location.href = "index.html";
+      };
     });
   </script>
 </body>
