@@ -2,344 +2,554 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Text Extraction Results</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TextExtract · Results</title>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
-    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #4f46e5;
+      --accent: #fb7185;
+      --bg: #020617;
+      --card-bg: rgba(15, 23, 42, 0.96);
+      --border: rgba(148, 163, 184, 0.4);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+    }
+
+    * { box-sizing: border-box; }
+
     body {
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       margin: 0;
-      padding: 20px;
       min-height: 100vh;
+      padding: 20px;
+      font-family: 'Poppins', system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(96, 165, 250, 0.35) 0, transparent 55%),
+        radial-gradient(circle at 80% 80%, rgba(244, 114, 182, 0.35) 0, transparent 55%),
+        #020617;
+      color: var(--text-main);
       display: flex;
-      flex-direction: column;
       align-items: center;
+      justify-content: center;
+    }
+
+    .page-shell {
+      width: 100%;
+      max-width: 1150px;
+      border-radius: 28px;
+      background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.2) 0, transparent 55%),
+                  radial-gradient(circle at 100% 100%, rgba(236, 72, 153, 0.18) 0, transparent 55%),
+                  var(--card-bg);
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: 0 24px 60px rgba(15, 23, 42, 0.9);
+      padding: 20px 22px 22px;
+      backdrop-filter: blur(16px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-shell::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid transparent;
+      background: linear-gradient(120deg, rgba(129, 140, 248, 0.7), transparent, rgba(244, 114, 182, 0.7)) border-box;
+      -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    .top-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .top-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      background: conic-gradient(from 180deg at 50% 50%, #4f46e5, #ec4899, #22c55e, #4f46e5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 14px 40px rgba(79, 70, 229, 0.7);
+    }
+
+    .logo-dot i {
+      color: #f9fafb;
+      font-size: 14px;
+    }
+
+    .title-block h1 {
+      font-size: 20px;
+      margin: 0 0 2px;
+    }
+
+    .title-block p {
+      margin: 0;
+      font-size: 12px;
+      color: var(--text-muted);
     }
 
     .back-btn {
-      position: fixed;
-      top: 20px;
-      left: 20px;
-      background: rgba(255, 255, 255, 0.9);
-      border: none;
-      color: #667eea;
-      padding: 12px 20px;
-      border-radius: 25px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.25) 0, transparent 60%),
+                  rgba(15, 23, 42, 0.9);
+      padding: 7px 13px;
+      font-size: 12px;
+      color: var(--text-main);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.8);
+      transition: all 0.18s ease;
     }
+
+    .back-btn i {
+      font-size: 13px;
+      color: #a5b4fc;
+    }
+
     .back-btn:hover {
-      background: rgba(255, 255, 255, 1);
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+      transform: translateY(-1px);
+      box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
     }
 
-    .container {
-      width: 100%;
-      max-width: 1000px;
-      margin: 60px auto 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-
-    .header {
-      text-align: center;
-      margin-bottom: 40px;
-      color: white;
-    }
-    .header h1 {
-      font-size: 42px;
-      margin: 0 0 10px 0;
-      font-weight: 700;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 15px;
-    }
-    .header p {
-      font-size: 18px;
-      margin: 0;
-      opacity: 0.9;
-      font-weight: 300;
-    }
-
-    .section-title {
-      font-size: 24px;
-      color: white;
-      margin: 30px 0 20px 0;
-      text-align: center;
-      font-weight: 600;
-    }
-
-    .stats-grid {
+    .grid {
+      margin-top: 10px;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      grid-template-columns: 280px minmax(0, 1fr);
       gap: 20px;
-      width: 100%;
-      margin-bottom: 40px;
-    }
-    .stat-card {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 30px 20px;
-      border-radius: 20px;
-      text-align: center;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      backdrop-filter: blur(10px);
-      transition: all 0.3s ease;
-    }
-    .stat-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 35px rgba(0,0,0,0.15);
-    }
-    .stat-value {
-      font-size: 36px;
-      font-weight: 700;
-      color: #667eea;
-      margin-bottom: 8px;
-      display: block;
-    }
-    .stat-label {
-      font-size: 16px;
-      color: #666;
-      font-weight: 500;
     }
 
-    .content-section {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 20px;
-      padding: 30px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-      backdrop-filter: blur(10px);
-      margin-bottom: 30px;
-    }
-    .content-section h2 {
-      margin: 0 0 20px 0;
-      font-size: 22px;
-      color: #333;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .extracted-text {
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 12px;
-      padding: 20px;
-      font-family: 'Courier New', monospace;
-      font-size: 14px;
-      line-height: 1.5;
-      white-space: pre-wrap;
-      word-break: break-word;
-      max-height: 400px;
-      overflow-y: auto;
-      margin-bottom: 20px;
-      color: #333;
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 15px;
-      flex-wrap: wrap;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .btn {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    }
-    .btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
-    }
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .extract-another {
-      background: rgba(255, 255, 255, 0.95);
-      border: 2px solid #667eea;
-      color: #667eea;
-      padding: 15px 30px;
-      border-radius: 25px;
-      cursor: pointer;
-      font-size: 16px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-      backdrop-filter: blur(10px);
-    }
-    .extract-another:hover {
-      background: #667eea;
-      color: white;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-    }
-
-    @media (max-width: 768px) {
-      .container {
-        margin-top: 80px;
+    @media (max-width: 900px) {
+      .page-shell {
+        padding: 16px 14px 18px;
       }
-      .header h1 {
-        font-size: 28px;
-      }
-      .stats-grid {
+      .grid {
         grid-template-columns: 1fr;
       }
-      .action-buttons {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .btn {
-        justify-content: center;
-      }
+    }
+
+    /* Left column: image + stats */
+
+    .side-card {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .side-card h2 {
+      margin: 0;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .side-card h2 i {
+      color: #a5b4fc;
+    }
+
+    .image-wrapper {
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.15) 0, transparent 55%),
+                  #020617;
+      padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 170px;
+    }
+
+    #processed-image {
+      max-width: 100%;
+      max-height: 260px;
+      border-radius: 12px;
+      object-fit: contain;
+      display: none;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .stat-card {
+      border-radius: 14px;
+      padding: 8px 10px;
+      background: radial-gradient(circle at 0 0, rgba(59, 130, 246, 0.25) 0, transparent 60%),
+                  rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.5);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    /* Right column: text + translator */
+
+    .main-column {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .text-card {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 14px 14px 10px;
+    }
+
+    .text-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .text-card-header h2 {
+      margin: 0;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-chip {
+      font-size: 11px;
+      border-radius: 999px;
+      padding: 4px 9px;
+      border: 1px solid rgba(52, 211, 153, 0.5);
+      background: rgba(22, 163, 74, 0.16);
+      color: #bbf7d0;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-chip.error {
+      border-color: rgba(248, 113, 113, 0.6);
+      background: rgba(239, 68, 68, 0.18);
+      color: #fecaca;
+    }
+
+    .status-chip.none {
+      border-color: rgba(148, 163, 184, 0.6);
+      background: rgba(30, 64, 175, 0.16);
+      color: #bfdbfe;
+    }
+
+    .status-chip i {
+      font-size: 11px;
+    }
+
+    .extracted-text {
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+      background: #020617;
+      padding: 10px;
+      font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      max-height: 260px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .action-row {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .btn {
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.9);
+      padding: 6px 11px;
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      color: var(--text-main);
+      transition: all 0.16s ease;
+    }
+
+    .btn i {
+      font-size: 12px;
+      color: #a5b4fc;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      border-color: #a5b4fc;
+      box-shadow: 0 10px 24px rgba(15, 23, 42, 0.9);
+    }
+
+    .btn-primary {
+      border-color: transparent;
+      background: linear-gradient(120deg, #4f46e5, #ec4899);
+      color: #f9fafb;
+      box-shadow: 0 14px 32px rgba(79, 70, 229, 0.8);
+    }
+
+    .btn-primary i {
+      color: #fefce8;
+    }
+
+    .btn:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Translator */
+
+    .translator-card {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 12px 14px;
+    }
+
+    .translator-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+
+    .translator-header h2 {
+      margin: 0;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .translator-header h2 i {
+      color: #a5b4fc;
+    }
+
+    .language-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .language-row select {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: var(--text-main);
+      font-size: 12px;
+      padding: 6px 10px;
+      outline: none;
+    }
+
+    #translate-loader {
+      display: none;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #translate-loader span {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      border: 2px solid rgba(148, 163, 184, 0.5);
+      border-top-color: #a78bfa;
+      animation: spin 0.6s linear infinite;
+    }
+
+    #translated-text {
+      margin-top: 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(15, 23, 42, 0.9);
+      background: #020617;
+      padding: 10px;
+      font-family: 'JetBrains Mono', 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      max-height: 190px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
-
 <body>
-  <button class="back-btn" id="back-btn">← Back to Upload</button>
+  <div class="page-shell">
+    <div class="top-row">
+      <div class="top-left">
+        <div class="logo-dot">
+          <i class="fas fa-wand-magic-sparkles"></i>
+        </div>
+        <div class="title-block">
+          <h1>OCR Result</h1>
+          <p>Extracted text & translation tools</p>
+        </div>
+      </div>
 
-  <div class="container">
-    <div class="header">
-      <h1>📄 Text Extraction Results</h1>
-      <p>Your extracted text is ready!</p>
+      <button class="back-btn" id="back-btn">
+        <i class="fas fa-arrow-left"></i>
+        Back to upload
+      </button>
     </div>
 
-    <div class="section-title">Statistics</div>
+    <div class="grid">
+      <!-- Left column -->
+      <aside class="side-card">
+        <h2><i class="fas fa-image"></i> Processed image</h2>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <span class="stat-value" id="char-count">0</span>
-        <span class="stat-label">Characters</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-value" id="word-count">0</span>
-        <span class="stat-label">Words</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-value" id="line-count">0</span>
-        <span class="stat-label">Lines</span>
-      </div>
+        <div class="image-wrapper">
+          <img id="processed-image" alt="Processed preview" />
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-label">Characters</div>
+            <div class="stat-value" id="char-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Words</div>
+            <div class="stat-value" id="word-count">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Lines</div>
+            <div class="stat-value" id="line-count">0</div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Right column -->
+      <section class="main-column">
+        <div class="text-card">
+          <div class="text-card-header">
+            <h2><i class="fas fa-file-lines"></i> Extracted content</h2>
+            <div id="status-chip" class="status-chip none">
+              <i class="fas fa-circle-info"></i>
+              Awaiting OCR…
+            </div>
+          </div>
+
+          <div id="extracted-text" class="extracted-text">
+            Loading extracted text...
+          </div>
+
+          <div class="action-row">
+            <button id="copy-btn" class="btn">
+              <i class="fas fa-copy"></i>
+              Copy
+            </button>
+            <button id="download-btn" class="btn">
+              <i class="fas fa-download"></i>
+              Download .txt
+            </button>
+            <button id="edit-btn" class="btn">
+              <i class="fas fa-pen"></i>
+              Edit in new tab
+            </button>
+            <button id="another-btn" class="btn btn-primary">
+              <i class="fas fa-plus"></i>
+              New image
+            </button>
+          </div>
+        </div>
+
+        <div class="translator-card">
+          <div class="translator-header">
+            <h2><i class="fas fa-language"></i> Translate extracted text</h2>
+            <span style="font-size: 11px; color: var(--text-muted);">
+              Uses Google Cloud Translation
+            </span>
+          </div>
+
+          <div class="language-row">
+            <span style="font-size: 12px; color: var(--text-muted);">
+              Target language:
+            </span>
+            <select id="target-language">
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="pt">Portuguese</option>
+              <option value="it">Italian</option>
+              <option value="ru">Russian</option>
+              <option value="zh">Chinese (Simplified)</option>
+              <option value="ja">Japanese</option>
+            </select>
+
+            <button id="translate-btn" class="btn btn-primary">
+              <i class="fas fa-arrow-right-arrow-left"></i>
+              Translate
+            </button>
+
+            <div id="translate-loader">
+              <span></span>
+              Translating…
+            </div>
+          </div>
+
+          <div id="translated-text">
+            Translation will appear here.
+          </div>
+        </div>
+      </section>
     </div>
-
-    <div class="content-section">
-      <h2>📋 Extracted Content</h2>
-
-      <div class="extracted-text" id="extracted-text">
-        Loading extracted text...
-      </div>
-
-      <div class="action-buttons">
-        <button class="btn" id="copy-btn">📋 Copy Text</button>
-        <button class="btn" id="download-btn">💾 Download as TXT</button>
-        <button class="btn" id="edit-btn">✏️ Edit Text</button>
-      </div>
-    </div>
-
-    <button class="extract-another" id="another-btn">➕ Extract Another Image</button>
   </div>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const backBtn = document.getElementById('back-btn');
-      const charEl = document.getElementById('char-count');
-      const wordEl = document.getElementById('word-count');
-      const lineEl = document.getElementById('line-count');
-      const extractedEl = document.getElementById('extracted-text');
-      const copyBtn = document.getElementById('copy-btn');
-      const downloadBtn = document.getElementById('download-btn');
-      const editBtn = document.getElementById('edit-btn');
-      const anotherBtn = document.getElementById('another-btn');
-
-      backBtn.onclick = () => window.location.href = "index.html";
-
-      // Read extracted text
-      const text = sessionStorage.getItem("extractedText") || "";
-      const status = sessionStorage.getItem("extractionStatus") || "none";
-
-      // Display extracted text
-      extractedEl.textContent = text ? text : "No extracted text found.";
-
-      // Stats
-      const charCount = text ? text.length : 0;
-      const wordCount = text ? text.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
-      const lineCount = text ? text.split(/\n/).length : 0;
-
-      // Animate stats
-      const animate = (element, value) => {
-        let start = 0;
-        const increment = value / 60;
-        const interval = setInterval(() => {
-          start += increment;
-          if (start >= value) {
-            element.textContent = value;
-            clearInterval(interval);
-          } else {
-            element.textContent = Math.floor(start);
-          }
-        }, 20);
-      };
-
-      animate(charEl, charCount);
-      animate(wordEl, wordCount);
-      animate(lineEl, lineCount);
-
-      // Copy text
-      copyBtn.onclick = async () => {
-        await navigator.clipboard.writeText(text);
-        copyBtn.innerText = "✅ Copied!";
-        setTimeout(() => copyBtn.innerText = "📋 Copy Text", 1500);
-      };
-
-      // Download text
-      downloadBtn.onclick = () => {
-        const blob = new Blob([text], { type: "text/plain" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "extracted_text.txt";
-        a.click();
-        URL.revokeObjectURL(url);
-      };
-
-      // Edit text
-      editBtn.onclick = () => {
-        const win = window.open("", "_blank");
-        win.document.write(`
-          <textarea style="width:100%;height:90vh;font-size:16px;">${text.replace(/</g,"&lt;")}</textarea>
-        `);
-      };
-
-      anotherBtn.onclick = () => {
-        sessionStorage.clear();
-        window.location.href = "index.html";
-      };
-    });
-  </script>
+  <script src="js/result.js"></script>
 </body>
 </html>
