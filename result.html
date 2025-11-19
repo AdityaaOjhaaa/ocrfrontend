@@ -286,19 +286,18 @@
         window.location.href = 'index.html';
       });
 
-      // Get extracted text from sessionStorage
       const text = sessionStorage.getItem('extractedText') || '';
-      
-      if (text) {
-        extractedEl.textContent = text;
-      } else {
-        extractedEl.textContent = 'No text was extracted. Please try uploading another image.';
-      }
 
-      // Calculate statistics
-      const charCount = text.length;
-      const wordCount = text.trim().split(/\s+/).filter(word => word.length > 0).length;
-      const lineCount = text.split(/\n/).length;
+if (text) {
+    extractedEl.textContent = text;
+} else {
+    extractedEl.textContent = 'No text was extracted. Please try uploading another image.';
+}
+
+const charCount = text.length || 0;
+const wordCount = text ? text.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
+const lineCount = text ? text.split(/\n/).length : 0;
+
 
       // Update counters with animation
       const animateCounter = (element, target) => {
