@@ -1,55 +1,492 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TextExtract | OCR Solution</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TextExtract | OCR & Translation</title>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary: #6c63ff;
+      --primary-dark: #584fe0;
+      --accent: #ff6584;
+      --bg: #050816;
+      --card-bg: rgba(15, 23, 42, 0.9);
+      --border: rgba(148, 163, 184, 0.3);
+      --text-main: #e5e7eb;
+      --text-muted: #9ca3af;
+      --shadow-soft: 0 20px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background:
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.35) 0%, transparent 55%),
+        radial-gradient(circle at 90% 80%, rgba(236, 72, 153, 0.35) 0%, transparent 55%),
+        radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.25) 0%, transparent 55%),
+        #020617;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 1120px;
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 32px;
+      align-items: center;
+    }
+
+    @media (max-width: 900px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .hero {
+      padding: 24px 8px;
+    }
+
+    .logo-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      border-radius: 16px;
+      background: radial-gradient(circle at 0 0, #34d399 0, transparent 55%),
+                  radial-gradient(circle at 100% 100%, #4f46e5 0, transparent 55%),
+                  #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-soft);
+    }
+
+    .logo-badge i {
+      color: #e5e7eb;
+      font-size: 18px;
+    }
+
+    .logo-text {
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      font-size: 14px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .title {
+      font-size: clamp(32px, 4vw, 40px);
+      font-weight: 700;
+      margin: 0 0 10px;
+      color: #f9fafb;
+      line-height: 1.1;
+    }
+
+    .title span {
+      background: linear-gradient(120deg, #a78bfa, #fb7185);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .subtitle {
+      margin: 0 0 24px;
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 520px;
+    }
+
+    .hero-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      background: radial-gradient(circle at 0 0, rgba(236, 72, 153, 0.25) 0, transparent 55%),
+                  rgba(15, 23, 42, 0.8);
+      color: var(--text-muted);
+    }
+
+    .pill i {
+      font-size: 12px;
+      color: #a5b4fc;
+    }
+
+    .hero-footer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .hero-footer i {
+      color: #4ade80;
+    }
+
+    /* Upload card */
+
+    .card {
+      background: radial-gradient(circle at 0 0, rgba(94, 234, 212, 0.15) 0, transparent 55%),
+                  radial-gradient(circle at 100% 100%, rgba(129, 140, 248, 0.2) 0, transparent 55%),
+                  var(--card-bg);
+      border-radius: 26px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      box-shadow: var(--shadow-soft);
+      padding: 22px 24px 20px;
+      backdrop-filter: blur(14px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -1px;
+      border-radius: inherit;
+      border: 1px solid transparent;
+      background: linear-gradient(135deg, rgba(94, 234, 212, 0.4), transparent, rgba(129, 140, 248, 0.7)) border-box;
+      -webkit-mask: linear-gradient(#000 0 0) padding-box, linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      opacity: 0.6;
+      pointer-events: none;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .card-title i {
+      color: #a5b4fc;
+    }
+
+    .card-subtitle {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .upload-area {
+      margin-top: 6px;
+      border-radius: 20px;
+      border: 1px dashed rgba(148, 163, 184, 0.6);
+      background: radial-gradient(circle at 0 0, rgba(96, 165, 250, 0.15) 0, transparent 55%),
+                  rgba(15, 23, 42, 0.85);
+      padding: 24px 18px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .upload-area.dragover {
+      border-style: solid;
+      border-color: #a5b4fc;
+      transform: translateY(-1px) scale(1.01);
+      box-shadow: 0 18px 40px rgba(59, 130, 246, 0.35);
+    }
+
+    .upload-pulse {
+      position: absolute;
+      width: 220px;
+      height: 220px;
+      border-radius: 999px;
+      background: radial-gradient(circle, rgba(129, 140, 248, 0.36), transparent 70%);
+      inset: 50% auto auto 50%;
+      translate: -50% -50%;
+      opacity: 0.5;
+      animation: pulse 2.4s infinite ease-out;
+      pointer-events: none;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.7); opacity: 0.7; }
+      100% { transform: scale(1.2); opacity: 0; }
+    }
+
+    .upload-icon {
+      font-size: 30px;
+      margin-bottom: 10px;
+      color: #a5b4fc;
+    }
+
+    .upload-text {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .upload-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .file-input {
+      display: none;
+    }
+
+    .filename {
+      font-size: 12px;
+      color: #e5e7eb;
+      margin-top: 8px;
+      display: none;
+      word-break: break-all;
+    }
+
+    .preview-image {
+      margin-top: 14px;
+      max-width: 100%;
+      max-height: 200px;
+      border-radius: 16px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      object-fit: contain;
+      display: none;
+    }
+
+    .control-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .select-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    select {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      padding: 6px 10px;
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+    }
+
+    .primary-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 9px 18px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      background: linear-gradient(120deg, #4f46e5, #ec4899);
+      color: #f9fafb;
+      box-shadow: 0 14px 30px rgba(79, 70, 229, 0.55);
+      transition: all 0.2s ease;
+    }
+
+    .primary-btn:hover {
+      transform: translateY(-1px) translateZ(0);
+      box-shadow: 0 18px 40px rgba(79, 70, 229, 0.7);
+    }
+
+    .primary-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .primary-btn i {
+      font-size: 14px;
+    }
+
+    .loader {
+      margin-top: 14px;
+      display: none;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .loader-spinner {
+      width: 16px;
+      height: 16px;
+      border-radius: 999px;
+      border: 2px solid rgba(148, 163, 184, 0.35);
+      border-top-color: #a78bfa;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .hint-row {
+      margin-top: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .hint-row i {
+      color: #22c55e;
+      font-size: 12px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>TextExtract <i class="fas fa-file-alt" style="color: #6c63ff;"></i></h1>
-        <p class="subtitle">Extract text from images with our powerful OCR technology</p>
+  <div class="app-shell">
 
-        <div class="features">
-            <div class="feature">
-                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                <div class="feature-title">Fast Processing</div>
-                <div class="feature-desc">Extract text in seconds</div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon"><i class="fas fa-check-circle"></i></div>
-                <div class="feature-title">High Accuracy</div>
-                <div class="feature-desc">Precise text recognition</div>
-            </div>
-            <div class="feature">
-                <div class="feature-icon"><i class="fas fa-globe"></i></div>
-                <div class="feature-title">Multiple Languages</div>
-                <div class="feature-desc">Support for various languages</div>
-            </div>
+    <section class="hero">
+      <div class="logo-row">
+        <div class="logo-badge">
+          <i class="fas fa-sparkles"></i>
+        </div>
+        <div class="logo-text">TextExtract · OCR + Translate</div>
+      </div>
+
+      <h1 class="title">
+        Turn any image into <span>editable, translated text.</span>
+      </h1>
+      <p class="subtitle">
+        Upload a screenshot, document, signboard, or handwritten note. We’ll extract the text using
+        Google Vision and optionally translate it into your preferred language.
+      </p>
+
+      <div class="hero-pills">
+        <div class="pill">
+          <i class="fas fa-bolt"></i> Fast OCR
+        </div>
+        <div class="pill">
+          <i class="fas fa-language"></i> Multi-language
+        </div>
+        <div class="pill">
+          <i class="fas fa-wand-magic-sparkles"></i> Smart Cleanup
+        </div>
+        <div class="pill">
+          <i class="fas fa-globe"></i> Translate text
+        </div>
+      </div>
+
+      <div class="hero-footer">
+        <span><i class="fas fa-check-circle"></i> Powered by Google Cloud Vision & Translate</span>
+        <span>•</span>
+        <span><i class="fas fa-lock"></i> Runs locally in your browser</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">
+            <i class="fas fa-cloud-upload-alt"></i>
+            Upload image
+          </div>
+          <div class="card-subtitle">Drag & drop or browse from your device</div>
+        </div>
+      </div>
+
+      <form id="upload-form">
+        <div class="upload-area"
+             onclick="document.getElementById('file-input').click()"
+             ondragover="handleDragOver(event)"
+             ondragleave="handleDragLeave(event)"
+             ondrop="handleDrop(event)">
+          <div class="upload-pulse"></div>
+          <div class="upload-icon">
+            <i class="fas fa-cloud-arrow-up"></i>
+          </div>
+          <p class="upload-text">Drop your image here</p>
+          <p class="upload-info">PNG, JPG, JPEG, GIF, BMP, TIFF — up to 20MB</p>
+          <input type="file" id="file-input" class="file-input" accept="image/*" />
+          <p id="file-name" class="filename"></p>
+          <img id="image-preview" class="preview-image" alt="Preview" />
         </div>
 
-        <form id="upload-form">
-            <div class="upload-area" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-                <div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                <p class="upload-text">Drag & Drop your image here</p>
-                <p class="upload-info">or click to browse</p>
-                <input type="file" name="file" id="file-input" class="file-input" accept="image/*">
-                <p id="file-name" class="filename"></p>
-            </div>
+        <div class="control-row">
+          <div class="select-group">
+            <span>OCR text language hint</span>
+            <select id="ocr-language">
+              <option value="">Auto-detect (recommended)</option>
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="pt">Portuguese</option>
+              <option value="it">Italian</option>
+              <option value="zh">Chinese</option>
+              <option value="ja">Japanese</option>
+            </select>
+          </div>
 
-            <button type="submit" class="btn">
-                <i class="fas fa-magic"></i> Extract Text
-            </button>
+          <button type="submit" class="primary-btn" id="submit-btn">
+            <i class="fas fa-magic"></i>
+            Extract text
+          </button>
+        </div>
 
-            <div id="loader" class="loader"></div>
-        </form>
+        <div id="loader" class="loader">
+          <div class="loader-spinner"></div>
+          <span>Running OCR with Google Vision…</span>
+        </div>
 
-        <!-- Remove the result container from index.html since we'll show results on result.html -->
-    </div>
+        <div class="hint-row">
+          <i class="fas fa-lightbulb"></i>
+          For best results, use clear, high-contrast images with readable text.
+        </div>
+      </form>
+    </section>
+  </div>
 
-    <script src="js/script.js"></script>
+  <script src="js/script.js"></script>
 </body>
 </html>
