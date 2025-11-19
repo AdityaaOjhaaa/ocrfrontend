@@ -1,309 +1,255 @@
-// Google Cloud Vision API configuration
-const GOOGLE_API_KEY = 'AIzaSyAAVGD1a6hn8X_SAokeVRzGQSjtW-1s18A'; // Replace with your real API key
-const GOOGLE_VISION_API_URL = 'https://vision.googleapis.com/v1/images:annotate';
+const GOOGLE_API_KEY = 'AIzaSyAySYZ8iGk7Mmjpnh1gnE0jKz_nyhQAQac';
+const GOOGLE_TRANSLATE_API_URL = 'https://translation.googleapis.com/language/translate/v2';
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('Script loaded successfully');
-    
-    const fileInput = document.getElementById('file-input');
-    const fileNameDisplay = document.getElementById('file-name');
-    const uploadForm = document.getElementById('upload-form');
-    const loader = document.getElementById('loader');
+document.addEventListener('DOMContentLoaded', () => {
+  const backBtn = document.getElementById('back-btn');
+  const processedImgEl = document.getElementById('processed-image');
 
-    // Verify elements exist
-    if (!fileInput || !uploadForm) {
-        console.error('Required elements not found. Check your HTML structure.');
-        return;
+  const charEl = document.getElementById('char-count');
+  const wordEl = document.getElementById('word-count');
+  const lineEl = document.getElementById('line-count');
+
+  const extractedEl = document.getElementById('extracted-text');
+  const statusChip = document.getElementById('status-chip');
+
+  const copyBtn = document.getElementById('copy-btn');
+  const downloadBtn = document.getElementById('download-btn');
+  const editBtn = document.getElementById('edit-btn');
+  const anotherBtn = document.getElementById('another-btn');
+
+  const targetLanguageSelect = document.getElementById('target-language');
+  const translateBtn = document.getElementById('translate-btn');
+  const translateLoader = document.getElementById('translate-loader');
+  const translatedEl = document.getElementById('translated-text');
+
+  // Back / new image
+  backBtn.addEventListener('click', () => {
+    window.location.href = 'index.html';
+  });
+
+  anotherBtn.addEventListener('click', () => {
+    sessionStorage.clear();
+    window.location.href = 'index.html';
+  });
+
+  // Load image preview from sessionStorage (if present)
+  const storedImage = sessionStorage.getItem('processedImage');
+  if (storedImage) {
+    processedImgEl.src = storedImage;
+    processedImgEl.style.display = 'block';
+  }
+
+  // Load extracted text and status
+  const text = sessionStorage.getItem('extractedText') || '';
+  const status = sessionStorage.getItem('extractionStatus') || 'none';
+
+  if (!text) {
+    extractedEl.textContent = 'No extracted text found. Try uploading an image again.';
+  } else {
+    extractedEl.textContent = text;
+  }
+
+  // Status chip
+  if (status === 'success') {
+    statusChip.className = 'status-chip';
+    statusChip.innerHTML = '<i class="fas fa-circle-check"></i> Text extracted';
+  } else if (status === 'error') {
+    statusChip.className = 'status-chip error';
+    statusChip.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Error during OCR';
+  } else if (status === 'no-text') {
+    statusChip.className = 'status-chip none';
+    statusChip.innerHTML = '<i class="fas fa-circle-info"></i> No text detected';
+  } else {
+    statusChip.className = 'status-chip none';
+    statusChip.innerHTML = '<i class="fas fa-circle-info"></i> Awaiting OCR…';
+  }
+
+  // Stats
+  const charCount = text ? text.length : 0;
+  const wordCount = text ? text.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
+  const lineCount = text ? text.split(/\n/).length : 0;
+
+  animateNumber(charEl, charCount);
+  animateNumber(wordEl, wordCount);
+  animateNumber(lineEl, lineCount);
+
+  // Copy button
+  copyBtn.addEventListener('click', async () => {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      const original = copyBtn.innerHTML;
+      copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied';
+      copyBtn.disabled = true;
+      setTimeout(() => {
+        copyBtn.innerHTML = original;
+        copyBtn.disabled = false;
+      }, 1600);
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  });
+
+  // Download button
+  downloadBtn.addEventListener('click', () => {
+    const blob = new Blob([text || ''], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `extracted_text_${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // Edit button
+  editBtn.addEventListener('click', () => {
+    const newWindow = window.open('', '_blank', 'width=900,height=700');
+    if (!newWindow) return;
+    const safeText = (text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    newWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Edit extracted text</title>
+          <style>
+            body {
+              margin: 0;
+              font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+              background: #020617;
+              color: #e5e7eb;
+              display: flex;
+              flex-direction: column;
+              height: 100vh;
+            }
+            header {
+              padding: 10px 14px;
+              border-bottom: 1px solid rgba(148, 163, 184, 0.4);
+              background: #020617;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              font-size: 14px;
+            }
+            button {
+              border-radius: 999px;
+              border: 1px solid rgba(148, 163, 184, 0.7);
+              background: #0f172a;
+              color: #e5e7eb;
+              padding: 6px 12px;
+              cursor: pointer;
+              font-size: 12px;
+            }
+            button:hover {
+              border-color: #a5b4fc;
+            }
+            textarea {
+              flex: 1;
+              border: none;
+              outline: none;
+              resize: none;
+              padding: 12px;
+              font-family: 'JetBrains Mono', Menlo, Consolas, monospace;
+              font-size: 13px;
+              background: #020617;
+              color: #e5e7eb;
+            }
+          </style>
+        </head>
+        <body>
+          <header>
+            <span>Editing extracted text</span>
+            <div>
+              <button onclick="downloadEdited()">Download .txt</button>
+              <button onclick="window.close()">Close</button>
+            </div>
+          </header>
+          <textarea id="editor">${safeText}</textarea>
+          <script>
+            function downloadEdited() {
+              const txt = document.getElementById('editor').value;
+              const blob = new Blob([txt], {type: 'text/plain;charset=utf-8'});
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = 'edited_text.txt';
+              document.body.appendChild(a);
+              a.click();
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  });
+
+  // Translation
+  translateBtn.addEventListener('click', async () => {
+    if (!text) {
+      translatedEl.textContent = 'No text available to translate.';
+      return;
     }
 
-    fileInput.addEventListener('change', function() {
-        console.log('File selected:', this.files[0]?.name);
-        if (this.files.length > 0) {
-            fileNameDisplay.textContent = 'Selected: ' + this.files[0].name;
-            fileNameDisplay.style.display = 'block';
-            previewImage(this.files[0]);
-        } else {
-            fileNameDisplay.style.display = 'none';
-        }
-    });
+    const targetLang = targetLanguageSelect.value || 'en';
 
-    uploadForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        console.log('Form submitted');
-        
-        if (fileInput.files.length === 0) {
-            alert('Please select an image file first!');
-            return;
-        }
+    translateBtn.disabled = true;
+    translateLoader.style.display = 'inline-flex';
+    translatedEl.textContent = '';
 
-        const file = fileInput.files[0];
-        console.log('Processing file:', file.name, 'Size:', file.size, 'Type:', file.type);
-        
-        // Validate file type
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff'];
-        if (!validTypes.includes(file.type)) {
-            alert('Please select a valid image file (JPEG, PNG, GIF, BMP, or TIFF)');
-            return;
-        }
-
-        if (file.size > 20 * 1024 * 1024) {
-            alert('File size should be less than 20MB');
-            return;
-        }
-
-        loader.style.display = 'block';
-
-        try {
-            // Clear any previous session data
-            sessionStorage.clear();
-            
-            // Store image data for the result page
-            console.log('Converting image to data URL...');
-            const imageDataUrl = await convertToDataURL(file);
-            sessionStorage.setItem('processedImage', imageDataUrl);
-            sessionStorage.setItem('imageInfo', JSON.stringify({
-                name: file.name,
-                size: file.size,
-                type: file.type,
-                lastModified: file.lastModified
-            }));
-            console.log('Image data stored in sessionStorage');
-
-            // Convert image to base64
-            console.log('Converting to base64...');
-            const base64Image = await convertToBase64(file);
-            
-            if (!base64Image || base64Image.length < 100) {
-                throw new Error('Failed to convert image to base64 format');
-            }
-            console.log('Base64 conversion successful, length:', base64Image.length);
-
-            // Prepare request for Google Vision API
-            const requestBody = {
-                requests: [
-                    {
-                        image: {
-                            content: base64Image
-                        },
-                        features: [
-                            {
-                                type: 'TEXT_DETECTION',
-                                maxResults: 1
-                            }
-                        ],
-                        imageContext: {
-                            languageHints: ['en']
-                        }
-                    }
-                ]
-            };
-
-            console.log('Making API request...');
-            const response = await fetch(`${GOOGLE_VISION_API_URL}?key=${GOOGLE_API_KEY}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(requestBody)
-            });
-
-            console.log('API Response status:', response.status);
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('API Error:', errorText);
-                throw new Error(`API request failed: ${response.status} - ${errorText}`);
-            }
-
-            const data = await response.json();
-            console.log('API Response received:', data);
-            
-            if (data.responses && data.responses[0]) {
-                const responseData = data.responses[0];
-                
-                if (responseData.error) {
-                    console.error('API Error in response:', responseData.error);
-                    sessionStorage.setItem('extractedText', `API Error: ${responseData.error.message}`);
-                    sessionStorage.setItem('extractionStatus', 'error');
-                } else if (responseData.textAnnotations && responseData.textAnnotations.length > 0) {
-                    let extractedTextContent = responseData.textAnnotations[0].description;
-                    extractedTextContent = cleanExtractedText(extractedTextContent);
-                    
-                    console.log('Text extracted successfully:', extractedTextContent.substring(0, 100) + '...');
-                    
-                    sessionStorage.setItem('extractedText', extractedTextContent);
-                    sessionStorage.setItem('extractionStatus', 'success');
-                } else {
-                    console.log('No text detected');
-                    sessionStorage.setItem('extractedText', 'No text detected in the image.\n\nTips:\n• Use clear, high-contrast images\n• Ensure text is readable\n• Check lighting conditions');
-                    sessionStorage.setItem('extractionStatus', 'no-text');
-                }
-            } else {
-                throw new Error('Invalid API response format');
-            }
-            
-            // Verify data was stored
-            const storedText = sessionStorage.getItem('extractedText');
-            const storedStatus = sessionStorage.getItem('extractionStatus');
-            console.log('Stored data - Text length:', storedText?.length, 'Status:', storedStatus);
-            
-            // Add a small delay before redirect to ensure data is stored
-            setTimeout(() => {
-                console.log('Redirecting to result.html...');
-                window.location.href = 'result.html';
-            }, 100);
-            
-        } catch (error) {
-            console.error('Complete error:', error);
-            
-            // Store error information
-            sessionStorage.setItem('extractedText', `Error: ${error.message}\n\nDebugging steps:\n• Check browser console for details\n• Verify API key is correct\n• Ensure internet connection\n• Try with a different image`);
-            sessionStorage.setItem('extractionStatus', 'error');
-            
-            // Redirect to result page with error
-            setTimeout(() => {
-                window.location.href = 'result.html';
-            }, 100);
-        } finally {
-            loader.style.display = 'none';
-        }
-    });
+    try {
+      const translated = await translateText(text, targetLang);
+      translatedEl.innerHTML = translated; // API returns HTML-escaped text
+    } catch (err) {
+      console.error('Translate error:', err);
+      translatedEl.textContent =
+        'Failed to translate text. Check that Cloud Translation API is enabled for this project.';
+    } finally {
+      translateBtn.disabled = false;
+      translateLoader.style.display = 'none';
+    }
+  });
 });
 
-// Enhanced conversion functions with better error handling
-function convertToDataURL(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            console.log('Data URL conversion successful');
-            resolve(reader.result);
-        };
-        reader.onerror = (error) => {
-            console.error('Data URL conversion failed:', error);
-            reject(new Error('Failed to read file for preview'));
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-function convertToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-            try {
-                const result = reader.result;
-                if (!result || typeof result !== 'string') {
-                    reject(new Error('Invalid file read result'));
-                    return;
-                }
-                
-                const base64String = result.split(',')[1];
-                if (!base64String || base64String.length === 0) {
-                    reject(new Error('Failed to extract base64 data'));
-                    return;
-                }
-                
-                console.log('Base64 conversion successful');
-                resolve(base64String);
-            } catch (error) {
-                console.error('Base64 conversion error:', error);
-                reject(new Error('Error processing file: ' + error.message));
-            }
-        };
-        reader.onerror = (error) => {
-            console.error('File read error:', error);
-            reject(new Error('Failed to read file'));
-        };
-        reader.readAsDataURL(file);
-    });
-}
-
-function cleanExtractedText(text) {
-    if (!text) return '';
-    
-    text = text.replace(/\r\n/g, '\n');
-    text = text.replace(/\r/g, '\n');
-    text = text.replace(/\n{3,}/g, '\n\n');
-    text = text.replace(/[ \t]{2,}/g, ' ');
-    text = text.trim();
-    
-    return text;
-}
-
-// Drag and drop functions
-function handleDragOver(evt) {
-    evt.preventDefault();
-    evt.stopPropagation();
-    const uploadArea = document.querySelector('.upload-area');
-    uploadArea?.classList.add('dragover');
-}
-
-function handleDragLeave(evt) {
-    evt.preventDefault();
-    evt.stopPropagation();
-    const uploadArea = document.querySelector('.upload-area');
-    uploadArea?.classList.remove('dragover');
-}
-
-function handleDrop(evt) {
-    evt.preventDefault();
-    evt.stopPropagation();
-    const uploadArea = document.querySelector('.upload-area');
-    uploadArea?.classList.remove('dragover');
-
-    const dt = evt.dataTransfer;
-    const files = dt.files;
-
-    if (files.length > 0) {
-        const file = files[0];
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff'];
-        
-        if (!validTypes.includes(file.type)) {
-            alert('Please select a valid image file');
-            return;
-        }
-        
-        if (file.size > 20 * 1024 * 1024) {
-            alert('File size should be less than 20MB');
-            return;
-        }
+// Animate numbers for stats
+function animateNumber(el, target) {
+  let current = 0;
+  const steps = 40;
+  const increment = target / steps;
+  const interval = setInterval(() => {
+    current += increment;
+    if (current >= target) {
+      el.textContent = target;
+      clearInterval(interval);
+    } else {
+      el.textContent = Math.floor(current);
     }
-
-    const fileInput = document.querySelector('#file-input');
-    if (fileInput) {
-        fileInput.files = files;
-        
-        if (files.length > 0) {
-            const fileName = files[0].name;
-            const fileNameElement = document.querySelector('#file-name');
-            if (fileNameElement) {
-                fileNameElement.textContent = 'Selected: ' + fileName;
-                fileNameElement.style.display = 'block';
-            }
-            previewImage(files[0]);
-        }
-    }
+  }, 18);
 }
 
-function previewImage(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        let preview = document.getElementById('image-preview');
-        if (!preview) {
-            preview = document.createElement('img');
-            preview.id = 'image-preview';
-            preview.style.maxWidth = '300px';
-            preview.style.maxHeight = '200px';
-            preview.style.marginTop = '10px';
-            preview.style.border = '1px solid #ddd';
-            preview.style.borderRadius = '4px';
-            const uploadArea = document.querySelector('.upload-area');
-            if (uploadArea) {
-                uploadArea.appendChild(preview);
-            }
-        }
-        preview.src = e.target.result;
-        preview.style.display = 'block';
-    };
-    reader.readAsDataURL(file);
+// Call Google Translate API
+async function translateText(text, targetLang) {
+  const response = await fetch(`${GOOGLE_TRANSLATE_API_URL}?key=${GOOGLE_API_KEY}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      q: text,
+      target: targetLang,
+      format: 'text'
+    })
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Translate error ${response.status}: ${errorText}`);
+  }
+
+  const data = await response.json();
+  if (!data.data || !data.data.translations || !data.data.translations[0]) {
+    throw new Error('Unexpected translation API response format.');
+  }
+
+  return data.data.translations[0].translatedText || '';
 }
